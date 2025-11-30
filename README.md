@@ -1,125 +1,169 @@
-# IWUM-Projekt-1
-Pierwszy projekt z przedmiotu interpretowalność i wyjaśnialność uczenia maszynowego
+# 📄 MODEL CARD – Model oceny ryzyka kredytowego (Logit WoE + XGBoost)
 
-Poki co odpalamy to w nastepujacej kolejnosci:
-1.EDA/dopasowanie_pipeline.py
-2.Modele_interpretowalne/modele_interpretowalne
-3.Modele_interpretowalne/ocena_jakosci_modelow_wykresy (chociaz wykresy sa juz itak wrzucone na githuba)
-4.Modele_interpretowalne/interpretowalnosc_regresja_logistyczna
-
-# 📌 Dokumentacja skryptów (moduł interpretowalnego modelu)
+## 1. **Nazwa modelu**
+**Model oceny ryzyka kredytowego dla firm (Logit WoE + XGBoost)**  
+Projekt w ramach kursu *IWUM – Interpretowalność i Wyjaśnialność Uczenia Maszynowego*.
 
 ---
 
-### **1. `EDA/transformers.py`**
-Zestaw własnych transformerów wykorzystywanych w preprocessing’u:
+## 2. 🎯 **Cel modelu**
 
-- **InfinityReplacer** — zamienia wartości `±inf → NaN`
-- **HighMissingDropper** — usuwa kolumny z dużym udziałem braków
-- **MissingIndicator** — generuje flagi braków
-- **CustomImputer** — imputacja braków (num + cat)
-- **Winsorizer** — przycinanie skrajnych wartości (winsoryzacja)
-- **LowVarianceDropper** — usuwa kolumny o niskiej wariancji
-- **HighCorrelationDropper** — usuwa kolumny o wysokiej korelacji
-- **WoETransformer** — wykonuje binning + liczy WoE + IV
-- **WoEDirectionalityFilter** — usuwa cechy, których WoE ma nielogiczny kierunek (rosnący WoE przy rosnącym default rate)
-- **DropColumnsTransformer** — usuwa cechy, dla których model logistyczny wyliczył dodatnie bety (bazując na liście z pliku `features_to_drop_positive_beta.txt`)
+Model został stworzony w celu:
 
-To jest **biblioteka wszystkich customowych transformacji** używanych w projekcie.
+- przewidywania **prawdopodobieństwa defaultu (PD)** dla klientów firmowych,  
+- wspierania decyzji kredytowych w oparciu o dane,  
+- automatycznego nadawania ratingów (AAA → CCC),  
+- wyznaczania optymalnych progów decyzyjnych na podstawie cost curves.
+
+System wykorzystuje dwa modele:
+
+1. **Logistic Regression + Weight of Evidence (interpretowalny)**  
+2. **XGBoost (black-box)**  
 
 ---
 
-### **2. `EDA/dopasowanie_pipeline.py`**
-Skrypt budujący pipeline’y preprocessingowe:
+## 3. 📊 **Dane wejściowe**
 
-- wykonuje podział danych **train/val/test (60/20/20)**
-- trenuje dwa pipeline’y:
-  - `preprocessing_tree.pkl` — pipeline pod model drzewa
-  - `preprocessing_logit_woe.pkl` — pipeline pod logit WoE (z filtrami kierunku i usuwaniem dodatnich bet)
-- zapisuje pipeline’y do folderu:  
-  **`EDA/preprocesing_pipelines/`**
+### Źródło danych
+Zbiór dostarczony w projekcie (plik: `zbiór_7.csv`).
 
-To jest **skrypt treningowy preprocessing’u**, uruchamiany przed trenowaniem modeli.
+### Charakterystyka:
+- Typ danych: **firmy (SME)**  
+- Zmienna celu: `default ∈ {0,1}`  
+- Zmienne wejściowe: dane finansowe i opisowe przedsiębiorstw  
+- Podział:
+  - 60% train  
+  - 20% val  
+  - 20% test  
+  - podział stratyfikowany  
 
----
-
-### **3. `Modele_interpretowalne/modele_interpretacyjne.py`**
-Skrypt odpowiedzialny za trenowanie modeli interpretowalnych:
-
-- wczytuje dane i pipeline’y z EDA
-- wykonuje **GridSearchCV** dla:
-  - regresji logistycznej (WoE)
-  - drzewa decyzyjnego (płytkie, interpretowalne)
-- wybiera najlepsze modele na podstawie **ROC-AUC**
-- liczy metryki:
-  - ROC-AUC  
-  - PR-AUC  
-  - KS statistic  
-  - log-loss  
-  - Brier score
-- zapisuje finalne modele do:
-  **`Modele_interpretowalne/models/`**
-
-To jest **główny skrypt trenowania modeli interpretowalnych**.
+### Przetwarzanie:
+- WoE + binning (monotoniczny)  
+- Scaling / preprocessing dla XGBoost  
+- Odrzucenie zmiennych z dużą liczbą braków  
 
 ---
 
-### **4. `Modele_interpretowalne/ocena_jakosci_modelow_wykresy.py`**
-Skrypt generujący wykresy jakości modeli:
+## 4. 📉 **Metody modelowania**
 
-- krzywe **ROC** (val + test)
-- krzywe **Precision–Recall** (val + test)
-- **Calibration plot**
-- **Histogramy PD** (rozkład predykcji dla good/bad)
+### 🔷 Logistic Regression (interpretable)
+- WoE zapewnia monotoniczność cech  
+- Prostota walidacji biznesowej  
+- Łatwa interpretacja wpływu zmiennych  
 
-Wszystkie wykresy zapisywane są do:
-**`Modele_interpretowalne/wykresy_oceny_jakosci/`**
-
-To jest **wizualne porównanie jakości logitu i drzewa**.
+### 🔶 XGBoost (black-box)
+- Boosting drzew → wysoka jakość predykcji  
+- Wyjaśnienia uzyskane przy użyciu SHAP  
 
 ---
 
-### **5. `Modele_interpretowalne/interpretowalnosc_regresja_logistyczna.py`**
-Główny skrypt interpretowalności modelu logistycznego:
+## 5. 🧪 **Ocena i walidacja**
 
-#### Co robi:
-- ładuje `best_logistic_regression_woe.pkl`
-- wyciąga współczynniki **beta**, liczy:
-  - `abs_beta`
-  - `odds_ratio = exp(beta)`
-  - znak beta
-- zapisuje tabelę współczynników do:
-  **`interpretowalnosc_logit/coefficients_logit.csv`**
+### Metryki:
+- ROC AUC  
+- KS  
+- Brier Score  
+- Calibration curve  
 
-#### Generuje wykresy:
-- **profile WoE** (default rate vs WoE)
-- diagnostyka liczności binów (good/bad/total)
-- **PDP** (średnia zmiana predykcji)
-- **ICE** (indywidualne krzywe dla obserwacji)
-
-Zapisywane do folderów:
-- `interpretowalnosc_logit/woe_profiles/`
-- `interpretowalnosc_logit/bin_diagnostics/`
-- `interpretowalnosc_logit/PDP/`
-- `interpretowalnosc_logit/ICE/`
-
-To jest **kompletny moduł interpretowalności globalnej modelu logistycznego**.
+### Kalibracja PD
+Model został skalibrowany, tak aby średnie PD wynosiło **ok. 4%**, zgodnie z historycznym poziomem strat.
 
 ---
 
-### **6. `Modele_interpretowalne/interpretowalnosc_logit/diagnoza_modelu_logstycznego.py`**
-⚠️ **ARCHIWALNY SKRYPT – NIE URUCHAMIAĆ**
+## 6. 🔍 **Wyjaśnialność modelu**
 
-Działał **wyłącznie** na poprzednim modelu logistycznym, który:
-- miał **32 dodatnie bety**,  
-- nie zawierał filtra kierunku WoE,  
-- nie był interpretowalny.
+### Wyjaśnienia globalne:
+- Feature importance  
+- SHAP Summary Plot  
+- Heatmapy korelacji  
+- Stabilność cech WoE  
 
-Aktualny projekt korzysta tylko z:
-- `modele_interpretacyjne.py`
-- `interpretowalnosc_regresja_logistyczna.py`
+### Wyjaśnienia lokalne:
+- SHAP force plot dla pojedynczego klienta  
+- Lista cech podwyższających/obniżających PD  
 
-Na górze pliku znajduje się ostrzeżenie:
+---
 
-lu logistycznego
+## 7. ⚠️ **Ograniczenia modelu**
+
+### Dane:
+- Zbiór może nie być w pełni reprezentatywny dla realnej populacji  
+- Część cech posiada braki  
+- Brak zmiennych makroekonomicznych
+
+### Metody:
+- Logit jest liniowy na log-odds  
+- XGBoost może się przeuczać bez monitoringu  
+
+### Zastosowanie:
+- Model nie powinien podejmować decyzji automatycznie  
+- Wymaga eksperckiej kontroli  
+
+---
+
+## 8. ⚡ **Ryzyka modelu**
+
+### 1. **Ryzyko błędnej klasyfikacji**
+- FP → udzielenie kredytu złemu klientowi (strata)  
+- FN → odrzucenie dobrego klienta (utrata zysku)  
+
+### 2. **Data drift**
+- Zmiana zachowania firm  
+- Zmiany makroekonomiczne  
+
+### 3. **Ryzyko etyczne**
+- Możliwa korelacja z cechami pośrednio wrażliwymi  
+
+---
+
+## 9. 🧭 **Ratingi i progi decyzyjne**
+
+### Ratingi:
+Rating = kwantyl PD z danych treningowych.  
+Skala: **AAA, AA, A, BBB, BB, B, CCC**
+
+### Progi decyzyjne:
+Wybrane na podstawie:
+
+- tabelek decyzyjnych  
+- krzywych zysku (cost curves)  
+- maksymalizacji oczekiwanego zysku portfela  
+
+Optymalny próg PD znajduje się ok. **0.14–0.17**.
+
+---
+
+## 10. ⏱️ **Plan monitoringu modelu**
+
+Monitorować co **miesiąc**, pełen przegląd co **kwartał**.
+
+### Monitorowane elementy:
+
+#### Dane:
+- Rozkłady cech  
+- Braki danych  
+- PSI (Population Stability Index)
+
+#### Model:
+- AUC, KS  
+- Brier score  
+- Kalibracja PD  
+
+#### Decyzje:
+- Realny zysk/strata vs. cost curve  
+- Stabilność progu decyzyjnego  
+
+### Kiedy retrain?
+- PSI > 0.25  
+- Spadek AUC o > 5 p.p.  
+- Zmiana default rate > 50%  
+
+---
+
+## 11. ✔️ **Podsumowanie**
+
+Model łączy interpretowalność (Logit WoE) z wysoką jakością (XGBoost).  
+Może wspierać proces kredytowy, ale wymaga regularnego monitoringu, walidacji i nadzoru analityka.
+
+---
 
