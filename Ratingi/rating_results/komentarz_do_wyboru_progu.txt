@@ -1,0 +1,32 @@
+Dlaczego takie wagi w funkcji kosztu?
+
+Przyjęte wartości odzwierciedlają realne zyski i straty wynikające z decyzji kredytowych w segmencie firm:
+
+profit_good_accepted = 0.15
+Szacowany zysk z poprawnie udzielonego kredytu (ok. 15% ekspozycji w całym cyklu życia).
+Wynika z typowej marży odsetkowej 3–5% rocznie oraz prowizji.
+
+loss_bad_accepted = 0.50
+Strata na kredycie, który przechodzi w default (ok. 50% ekspozycji).
+Zgodne z typowym LGD 40–60% dla kredytów firmowych.
+
+cost_reject_good = –0.06
+Utracony zysk wynikający z odrzucenia dobrego klienta.
+Ustalony jako 40% potencjalnego zysku (0.4 × 0.15).
+
+profit_reject_bad = +0.20
+"Zysk" polegający na uniknięciu straty od złego klienta.
+Ustalony jako 40% potencjalnej straty (0.4 × 0.50).
+
+Tak zdefiniowana funkcja kosztu odzwierciedla naturalny kompromis między wolumenem akceptacji a ryzykiem portfela.
+
+
+Komentarz do wyników (cost curve):
+
+Dla bardzo niskich progów PD bank akceptuje tylko najlepszych klientów — wolumen jest mały, ale zyski dodatnie.
+
+Wraz ze wzrostem progu akceptujemy coraz więcej klientów, w tym część ryzykownych, co początkowo zwiększa zysk portfela.
+
+W okolicach progu PD ≈ 0.15–0.25 krzywa osiąga maksimum — to punkt, w którym relacja zysków z dobrych klientów do strat na złych jest najbardziej korzystna.
+
+Po przekroczeniu tego progu zyski zaczynają spadać, ponieważ rośnie udział klientów złych (defaultujących).

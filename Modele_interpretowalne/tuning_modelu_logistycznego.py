@@ -213,7 +213,162 @@ if __name__ == "__main__":
     print("\nTop 15 zmiennych wg LR (wkład do log-likelihood w obecności pozostałych):")
     for i, col in enumerate(ordered_vars[:15], start=1):
         print(f"{i:2d}. {col:30s}  LR = {LR_scores[col]:.4f}")
+        
+    # ============================================================
+    #  FORWARD SELEKCJA PO LR + WARUNEK ZNAKU BETA (≤ 0) + WALIDACJA
+    # ============================================================
+
+    def predict_logit_sm(res, X_df_subset):
+        """
+        Predykcja prawdopodobieństw dla modelu statsmodels.Logit.
+        X_df_subset – DataFrame z wybranymi kolumnami (bez const).
+        """
+        X_np = np.asarray(X_df_subset, dtype=float)
+        X_const = sm.add_constant(X_np, has_constant="add")
+        return res.predict(X_const)
+
+    print("\n=== Forward selekcja zmiennych (warunek: wszystkie β ≤ 0) ===")
+
+    selected_vars = []      # zaakceptowane zmienne
+    excluded_vars = []      # zmienne odrzucone z powodu dodatniego beta
+    forward_results = []    # wyniki po każdym kroku
+    best_val_roc = -np.inf  # najlepszy jak dotąd ROC AUC na walidacji
+    best_info = None        # info o najlepszym modelu
+
+    # przechodzimy po zmiennych w kolejności od najważniejszej (po LR)
+    for col in ordered_vars:
+        if col in excluded_vars:
+            continue
+
+        candidate_vars = selected_vars + [col]
+
+        # dopasowanie modelu na TRAIN dla kandydackiego zestawu cech
+        res_cand = fit_logit_sm(X_train_woe_df[candidate_vars], y_train)
+
+        # współczynniki: [β0, β1, ..., β_k]; pomijamy intercept (β0)
+        beta = np.asarray(res_cand.params[1:], dtype=float)
+
+        # jeśli którykolwiek β > 0 → odrzucamy NOWĄ cechę
+        if np.any(beta > 0.0):
+            print(f"⚠️ Zmienna {col} odrzucona – dodatni współczynnik beta w modelu.")
+            excluded_vars.append(col)
+            continue
+
+        # jeśli wszystkie β ≤ 0 → akceptujemy nowy zestaw
+        selected_vars = candidate_vars
+        k = len(selected_vars)
+
+        # predykcje na TRAIN/VAL/TEST
+        y_train_proba = predict_logit_sm(res_cand, X_train_woe_df[selected_vars])
+        y_val_proba   = predict_logit_sm(res_cand, X_val_woe_df[selected_vars])
+        y_test_proba  = predict_logit_sm(res_cand, X_test_woe_df[selected_vars])
+
+        # metryki
+        train_m = compute_metrics(y_train, y_train_proba)
+        val_m   = compute_metrics(y_val,   y_val_proba)
+        test_m  = compute_metrics(y_test,  y_test_proba)
+
+        forward_results.append({
+            "k": k,
+            "added_var": col,
+            "vars": list(selected_vars),
+
+            "ROC_AUC_VAL":  val_m["ROC AUC"],
+            "PR_AUC_VAL":   val_m["PR AUC"],
+            "Gini_VAL":     val_m["Gini"],
+            "KS_VAL":       val_m["KS"],
+            "Brier_VAL":    val_m["Brier score"],
+
+            "ROC_AUC_TEST": test_m["ROC AUC"],
+            "PR_AUC_TEST":  test_m["PR AUC"],
+            "Gini_TEST":    test_m["Gini"],
+            "KS_TEST":      test_m["KS"],
+            "Brier_TEST":   test_m["Brier score"],
+        })
+
+        print(f"\n===== FORWARD – k={k}, dodana zmienna: {col} =====")
+        print("Aktualny zestaw zmiennych:")
+        for v in selected_vars:
+            print("  -", v)
+        print_metrics("TRAIN", train_m)
+        print_metrics("VAL",   val_m)
+        print_metrics("TEST",  test_m)
+
+        # aktualizacja najlepszego modelu wg ROC AUC na walidacji
+        if val_m["ROC AUC"] > best_val_roc:
+            best_val_roc = val_m["ROC AUC"]
+            best_info = {
+                "k": k,
+                "vars": list(selected_vars),
+                "train_metrics": train_m,
+                "val_metrics": val_m,
+                "test_metrics": test_m,
+            }
+
+    # podsumowanie wszystkich kroków
+    print("\n=== PODSUMOWANIE FORWARD SELECTION (wg ROC AUC na VAL) ===")
+    for r in forward_results:
+        print(
+            f"k={r['k']:2d} | added={r['added_var']:30s} | "
+            f"ROC_AUC_VAL={r['ROC_AUC_VAL']:.4f} | Gini_VAL={r['Gini_VAL']:.4f} | "
+            f"KS_VAL={r['KS_VAL']:.4f} | Brier_VAL={r['Brier_VAL']:.4f} | "
+            f"ROC_AUC_TEST={r['ROC_AUC_TEST']:.4f} | Gini_TEST={r['Gini_TEST']:.4f} | "
+            f"KS_TEST={r['KS_TEST']:.4f} | Brier_TEST={r['Brier_TEST']:.4f}"
+        )
+
+    # najlepszy model wg walidacji – pełne metryki + lista cech
+    if best_info is not None:
+        print("\n=== NAJLEPSZY MODEL wg ROC AUC na WALIDACJI ===")
+        print(f"k = {best_info['k']}")
+        print("Zmienne:")
+        for v in best_info["vars"]:
+            print("  -", v)
+        print_metrics("TRAIN – best", best_info["train_metrics"])
+        print_metrics("VAL   – best", best_info["val_metrics"])
+        print_metrics("TEST  – best", best_info["test_metrics"])
     
+    # ============================================================
+    #   ZAPIS KOLUMN DO WYRZUCENIA DLA NAJLEPSZEGO MODELU FORWARD
+    # ============================================================
+    
+    if best_info is not None:
+        # wszystkie cechy po WoE (tak jak wcześniej)
+        all_features_after_woe = list(woe_feature_names)
+    
+        # cechy użyte w najlepszym modelu
+        best_vars = best_info["vars"]
+    
+        # kolumny do drop: wszystko, czego NIE ma w best_vars
+        drop_cols_best = [col for col in all_features_after_woe if col not in best_vars]
+    
+        print("\n=== LISTA KOLUMN DO USUNIĘCIA (BEST FORWARD MODEL) ===")
+        print(f"Liczba wszystkich cech po WoE : {len(all_features_after_woe)}")
+        print(f"Liczba cech w najlepszym modelu: {len(best_vars)}")
+        print(f"Liczba kolumn do usunięcia     : {len(drop_cols_best)}")
+    
+        # katalog jak wcześniej przy BIC
+        drop_dir = os.path.join(BASE_DIR, "interpretowalnosc_logit")
+        os.makedirs(drop_dir, exist_ok=True)
+    
+        drop_forward_path = os.path.join(
+            drop_dir,
+            "drop_columns_forward_best.csv"  # inna nazwa niż przy BIC
+        )
+    
+        # zapis w formacie dla DropColumnsTransformer (kolumna 'feature')
+        df_drop_best = pd.DataFrame({"feature": drop_cols_best})
+        df_drop_best.to_csv(drop_forward_path, index=False)
+    
+        print(f"\n✅ Zapisano listę kolumn do usunięcia dla najlepszego modelu "
+              f"forward do pliku:\n{drop_forward_path}")
+    else:
+        print("\n⚠️ Nie udało się znaleźć najlepszego modelu (best_info is None). "
+              "Nic nie zapisano.")
+    
+        
+    # ============================================================
+    #       BIC NA TRAIN
+    # ============================================================
     
     # 4. Budowanie zagnieżdżonej rodziny modeli: 1,2,...,p najlepszych zmiennych
     print("\n=== Buduję zagnieżdżoną rodzinę modeli i liczę BIC na TRAIN ===")
@@ -248,7 +403,7 @@ if __name__ == "__main__":
     
     
     # ============================================================
-    #    NOWY MODEL PREDYKCYJNY (sklearn) NA WYBRANYCH ZMIENNYCH
+    #    NOWY MODEL PREDYKCYJNY (sklearn) NA WYBRANYCH ZMIENNYCH przez BIC
     # ============================================================
     
     # 6. Przygotowanie macierzy tylko z wybranymi zmiennymi
