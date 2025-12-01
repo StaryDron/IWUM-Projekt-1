@@ -216,15 +216,15 @@ if __name__ == "__main__":
     )
 
     # 4. Fitujemy pipeline’y na zbiorze treningowym
-    print("\n🌳 Fitowanie pipeline’u dla drzewa na zbiorze treningowym...")
+    print("\n Fitowanie pipeline’u dla drzewa na zbiorze treningowym...")
     X_train_tree = tree_pipeline.fit_transform(X_train, y_train)
     print("   ➜ Kształt po przetworzeniu (drzewo):", X_train_tree.shape)
 
-    print("\n📈 Fitowanie pipeline’u dla logitu (WoE) na zbiorze treningowym...")
+    print("\n Fitowanie pipeline’u dla logitu (WoE) na zbiorze treningowym...")
     X_train_logit = logit_pipeline.fit_transform(X_train, y_train)
     print("   ➜ Kształt po przetworzeniu (logit+WoE):", X_train_logit.shape)
     
-    print("\n🤖 Fitowanie pipeline'u dla modeli nieinterpretowalnych na zbiorze treningowym...")
+    print("\n Fitowanie pipeline'u dla modeli nieinterpretowalnych na zbiorze treningowym...")
     X_train_blackbox = blackbox_pipeline.fit_transform(X_train, y_train)
     print("   ➜ Kształt po przetworzeniu (blackbox):", X_train_blackbox.shape)
 
@@ -234,7 +234,7 @@ if __name__ == "__main__":
     joblib.dump(logit_pipeline, os.path.join(PREPROC_DIR, "preprocessing_logit_woe.pkl"))
     joblib.dump(blackbox_pipeline, os.path.join(PREPROC_DIR, "preprocessing_blackbox.pkl"))
 
-    print("\n💾 Zapisano pipeline'y:")
+    print("\n Zapisano pipeline'y:")
     print("   - preprocessing_tree.pkl")
     print("   - preprocessing_logit_woe.pkl")
     print("   - preprocessing_blackbox.pkl")

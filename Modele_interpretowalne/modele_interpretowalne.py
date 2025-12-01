@@ -150,13 +150,13 @@ def train_with_gridsearch(
     model, param_grid, X_train, y_train, model_name="Model", cv=5
 ):
     print("\n" + "=" * 80)
-    print(f"🔧 GridSearch: {model_name}")
+    print(f" GridSearch: {model_name}")
     print("=" * 80)
 
     gs = GridSearchCV(
         estimator=model,
         param_grid=param_grid,
-        scoring="roc_auc",  # ⬅️ tylko ROC-AUC, żadnych custom scorerów
+        scoring="roc_auc",  #  tylko ROC-AUC, żadnych custom scorerów
         cv=cv,
         n_jobs=-1,
         verbose=1,
@@ -177,7 +177,7 @@ def train_with_gridsearch(
 # =====================================================================
 
 def main():
-    print("📂 Wczytywanie danych...")
+    print(" Wczytywanie danych...")
     df = pd.read_csv(DATA_PATH)
 
     X = df.drop(columns=["default"])
@@ -193,16 +193,16 @@ def main():
 
     print(f"Train: {X_train.shape}, Val: {X_val.shape}, Test: {X_test.shape}")
 
-    print("\n🔄 Ładowanie pipeline’ów...")
+    print("\n Ładowanie pipeline’ów...")
     tree_preproc = joblib.load(os.path.join(PREPROC_DIR, "preprocessing_tree.pkl"))
     logit_preproc = joblib.load(os.path.join(PREPROC_DIR, "preprocessing_logit_woe.pkl"))
 
-    print("\n🌳 Transformacja danych dla drzewa...")
+    print("\n Transformacja danych dla drzewa...")
     X_train_tree = tree_preproc.transform(X_train)
     X_val_tree = tree_preproc.transform(X_val)
     X_test_tree = tree_preproc.transform(X_test)
 
-    print("\n📈 Transformacja danych dla logitu...")
+    print("\n Transformacja danych dla logitu...")
     X_train_logit = logit_preproc.transform(X_train)
     X_val_logit = logit_preproc.transform(X_val)
     X_test_logit = logit_preproc.transform(X_test)
@@ -241,7 +241,7 @@ def main():
     # ============================
     #             ZAPIS
     # ============================
-    print("\n💾 Zapisujemy modele...")
+    print("\n Zapisujemy modele...")
 
     joblib.dump(best_logit, os.path.join(MODELS_DIR, "best_logistic_regression_woe.pkl"))
     joblib.dump(best_tree, os.path.join(MODELS_DIR, "best_decision_tree.pkl"))
