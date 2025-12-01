@@ -27,6 +27,10 @@ EDA_DIR = os.path.join(PROJECT_ROOT, "EDA")
 if EDA_DIR not in sys.path:
     sys.path.insert(0, EDA_DIR)
 
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
+
+
 DATA_PATH = os.path.join(PROJECT_ROOT, "zbiór_7.csv")
 PREPROC_DIR = os.path.join(PROJECT_ROOT, "EDA", "preprocesing_pipelines")
 MODELS_INTERP_DIR = os.path.join(PROJECT_ROOT, "Modele_interpretowalne", "models")
@@ -220,7 +224,9 @@ def main():
     df = pd.read_csv(DATA_PATH)
     X = df.drop(columns=["default"])
     y = df["default"]
-
+    
+    model_logit = joblib.load(os.path.join(MODELS_INTERP_DIR, "best_logistic_regression_woe.pkl"))
+    
     X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.4, random_state=42, stratify=y)
     X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42, stratify=y_temp)
     
@@ -233,6 +239,8 @@ def main():
             pre_logit = joblib.load(path_pre_logit)
             X_val_logit = pre_logit.transform(X_val)
             X_test_logit = pre_logit.transform(X_test)
+            X_val_logit   = pd.DataFrame(X_val_logit,   columns=model_logit.feature_names_in_)
+            X_test_logit  = pd.DataFrame(X_test_logit,  columns=model_logit.feature_names_in_)
         except Exception as e:
             print(f"![ERROR] Logit Preproc: {e}")
             return
@@ -257,7 +265,7 @@ def main():
     # Logit
     path_logit = find_file(MODELS_INTERP_DIR, "logit") or find_file(MODELS_INTERP_DIR, "logistic")
     if path_logit:
-        model_logit = joblib.load(path_logit)
+      #  model_logit = joblib.load(path_logit)
         p_val_logit = model_logit.predict_proba(X_val_logit)[:, 1]
         p_test_logit = model_logit.predict_proba(X_test_logit)[:, 1]
     else:

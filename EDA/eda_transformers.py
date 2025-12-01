@@ -35,7 +35,7 @@ class HighMissingDropper(BaseEstimator, TransformerMixin):
         missing_ratio = X.isnull().mean()
         self.cols_to_drop_ = missing_ratio[missing_ratio > self.missing_threshold].index.tolist()
         if len(self.cols_to_drop_) > 0:
-            print(f"🗑️ Zapamiętano {len(self.cols_to_drop_)} kolumn do usunięcia (braki > {self.missing_threshold*100:.0f}%)")
+            print(f" Zapamiętano {len(self.cols_to_drop_)} kolumn do usunięcia (braki > {self.missing_threshold*100:.0f}%)")
         return self
 
     def transform(self, X):
@@ -226,7 +226,7 @@ class LowVarianceDropper(BaseEstimator, TransformerMixin):
         variances = X[num_cols].var(numeric_only=True)
         self.low_var_cols_ = variances[variances < self.var_threshold].index.tolist()
         if len(self.low_var_cols_) > 0:
-            print(f"⚠️ Zapamiętano {len(self.low_var_cols_)} kolumn o niskiej wariancji (< {self.var_threshold})")
+            print(f" Zapamiętano {len(self.low_var_cols_)} kolumn o niskiej wariancji (< {self.var_threshold})")
         return self
 
     def transform(self, X):
@@ -252,7 +252,7 @@ class HighCorrelationDropper(BaseEstimator, TransformerMixin):
         upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
         self.high_corr_cols_ = [col for col in upper.columns if any(upper[col] > self.corr_threshold)]
         if len(self.high_corr_cols_) > 0:
-            print(f"🔁 Zapamiętano {len(self.high_corr_cols_)} kolumn z wysoką korelacją (> {self.corr_threshold})")
+            print(f" Zapamiętano {len(self.high_corr_cols_)} kolumn z wysoką korelacją (> {self.corr_threshold})")
         return self
 
     def transform(self, X):
@@ -446,7 +446,7 @@ class WoEDirectionalityFilter(BaseEstimator, TransformerMixin):
             kept = len(self.cols_to_keep_)
             dropped = total - kept
             print(
-                f"🧹 WoEDirectionalityFilter: zachowano {kept}/{total} kolumn, "
+                f" WoEDirectionalityFilter: zachowano {kept}/{total} kolumn, "
                 f"usunięto {dropped} (corr >= {self.min_corr:.3f})"
             )
 
@@ -502,17 +502,17 @@ class DropColumnsTransformer(BaseEstimator, TransformerMixin):
                 self.columns_ = df_cols[self.feature_col].astype(str).tolist()
                 if len(self.columns_) > 0:
                     print(
-                        f"🧹 DropColumnsTransformer: zapamiętano {len(self.columns_)} kolumn "
+                        f" DropColumnsTransformer: zapamiętano {len(self.columns_)} kolumn "
                         f"do usunięcia z pliku {self.columns_path}"
                     )
                 else:
                     print(
-                        f"🧹 DropColumnsTransformer: plik {self.columns_path} jest pusty – "
+                        f" DropColumnsTransformer: plik {self.columns_path} jest pusty – "
                         "nie usuwamy żadnych kolumn."
                     )
             except FileNotFoundError:
                 print(
-                    f"⚠️ DropColumnsTransformer: nie znaleziono pliku {self.columns_path}. "
+                    f" DropColumnsTransformer: nie znaleziono pliku {self.columns_path}. "
                     "Nie usuwamy żadnych kolumn."
                 )
                 self.columns_ = []

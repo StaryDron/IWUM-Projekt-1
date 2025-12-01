@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
+import sys
 
 # ============================================================
 #                KONFIGURACJA ŚCIEŻEK
@@ -13,6 +14,9 @@ import matplotlib.pyplot as plt
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))        # .../Modele_interpretowalne
 PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, "..")) # .../IWUM-Projekt-1
+
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
 
 MODELS_DIR = os.path.join(BASE_DIR, "models")
 INTERP_DIR = os.path.join(BASE_DIR, "interpretowalnosc_logit")
@@ -95,11 +99,11 @@ def summarize_signs(df_coef, intercept):
     print("\n============================")
     print("   PODSUMOWANIE WSPÓŁCZYNNIKÓW LOGITU")
     print("============================")
-    print(f"Intercept (β0): {intercept:.4f}")
+    print(f"Intercept (beta0): {intercept:.4f}")
     print(f"Liczba cech: {n_total}")
-    print(f"  • beta > 0  (positive): {n_pos}")
-    print(f"  • beta < 0  (negative): {n_neg}")
-    print(f"  • beta = 0  (zero):     {n_zero}")
+    print(f"   beta > 0  (positive): {n_pos}")
+    print(f"   beta < 0  (negative): {n_neg}")
+    print(f"   beta = 0  (zero):     {n_zero}")
 
     if n_pos == 0 and n_neg > 0:
         print("\n Wszystkie niezerowe bety są ujemne – kierunek wpływu jest spójny z WoE.")
@@ -180,7 +184,7 @@ def plot_woe_profile(X_woe, y, feature, save_path):
     plt.tight_layout()
     plt.savefig(save_path, dpi=150)
     plt.close()
-    print(f"   ➜ zapisano profil WoE: {save_path}")
+    print(f"    zapisano profil WoE: {save_path}")
 
 
 def generate_woe_profiles(df_coef, X_woe, y):
@@ -355,8 +359,8 @@ def plot_beta_importance(df_coef, top_n=9):
     colors = ["tab:red" if b > 0 else "tab:green" for b in df_top["beta"]]
     plt.barh(df_top["feature"], df_top["beta"], color=colors)
     plt.axvline(0, color="black", linewidth=1)
-    plt.xlabel("Wartość współczynnika β")
-    plt.title(f"Top {top_n} cech wg |β|")
+    plt.xlabel("Wartość współczynnika beta")
+    plt.title(f"Top {top_n} cech wg |beta|")
     plt.tight_layout()
 
     out_path = os.path.join(WYKRESY_DIR, f"beta_importance_top{top_n}.png")
@@ -459,7 +463,7 @@ def plot_pdp(grid, pdp_values, feature):
     out_path = os.path.join(PDP_DIR, f"pdp_{feature}.png")
     plt.savefig(out_path, dpi=150)
     plt.close()
-    print(f"   ➜ zapisano PDP: {out_path}")
+    print(f"    zapisano PDP: {out_path}")
 
 
 def plot_ice(grid, ice_curves, feature):
@@ -475,7 +479,7 @@ def plot_ice(grid, ice_curves, feature):
     out_path = os.path.join(ICE_DIR, f"ice_{feature}.png")
     plt.savefig(out_path, dpi=150)
     plt.close()
-    print(f"   ➜ zapisano ICE: {out_path}")
+    print(f"    zapisano ICE: {out_path}")
 
 
 def generate_pdp_ice_for_top_features(df_coef, X_woe, y, logit, top_n=9):
@@ -675,13 +679,13 @@ def compute_local_decomposition_for_9_cases(logit, df_coef):
     ]
     meta_path = os.path.join(INTERP_LOCAL_DIR, "local_cases_meta.csv")
     df_meta.to_csv(meta_path, index=False)
-    print(f" Zapisano podsumowanie 9 przypadków → {meta_path}")
+    print(f" Zapisano podsumowanie 9 przypadków  {meta_path}")
 
     # zapis top10 contributions (long format)
     df_all_top10 = pd.concat(all_top10_rows, ignore_index=True)
     contrib_path = os.path.join(INTERP_LOCAL_DIR, "local_cases_top10_contributions.csv")
     df_all_top10.to_csv(contrib_path, index=False)
-    print(f" Zapisano top 9 wkładów cech dla 9 przypadków → {contrib_path}")
+    print(f" Zapisano top 9 wkładów cech dla 9 przypadków  {contrib_path}")
 
 
 # ============================================================

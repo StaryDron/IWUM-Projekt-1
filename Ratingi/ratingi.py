@@ -10,7 +10,7 @@ Zakładamy, że wejściowe modele zwracają już "PD" (docelowo: skalibrowane).
 Na razie można używać PD z niekalibrowanego logitu.
 """
 import matplotlib.pyplot as plt
-
+import sys
 import os
 import numpy as np
 import pandas as pd
@@ -25,6 +25,10 @@ from sklearn.model_selection import train_test_split
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))        # .../IWUM-Projekt-1/Ratingi
 PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, "..")) # .../IWUM-Projekt-1
+
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
+
 
 DATA_PATH = os.path.join(PROJECT_ROOT, "zbiór_7.csv")
 
@@ -168,7 +172,8 @@ def build_rating_bins_by_quantiles(pd_train, n_classes=7):
     if len(bin_edges) - 1 < n_classes:
         # jeśli duplikaty, mamy mniej "slotów" ratingowych,
         # więc skracamy listę RATING_LABELS przy mapowaniu
-        print("⚠️ Ostrzeżenie: duplikujące się progi ratingów (mało zróżnicowane PD).")
+        print(" Ostrzeżenie: duplikujące się progi ratingów (mało zróżnicowane PD).")
+    print(bin_edges)
     return bin_edges
 
 

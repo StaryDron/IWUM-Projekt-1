@@ -1,4 +1,6 @@
 import os
+print(">>> URUCHAMIAM PLIK:", __file__)
+
 import sys
 import pandas as pd
 import numpy as np
@@ -168,7 +170,7 @@ if __name__ == "__main__":
     X = df.drop(columns=["default"])
     y = df["default"]
 
-    print("🔍 Rozmiar pełnego zbioru:", X.shape)
+    print(" Rozmiar pełnego zbioru:", X.shape)
 
     # 2. Podział train / temp / test (60 / 20 / 20) ze stałym random_state
     X_train, X_temp, y_train, y_temp = train_test_split(
@@ -187,7 +189,7 @@ if __name__ == "__main__":
         random_state=42,
     )
 
-    print("📚 Train:", X_train.shape, "Val:", X_val.shape, "Test:", X_test.shape)
+    print("Train:", X_train.shape, "Val:", X_val.shape, "Test:", X_test.shape)
 
     # 3. Tworzymy oba pipeline’y
     tree_pipeline = create_tree_preprocessing_pipeline(
@@ -218,15 +220,15 @@ if __name__ == "__main__":
     # 4. Fitujemy pipeline’y na zbiorze treningowym
     print("\n Fitowanie pipeline’u dla drzewa na zbiorze treningowym...")
     X_train_tree = tree_pipeline.fit_transform(X_train, y_train)
-    print("   ➜ Kształt po przetworzeniu (drzewo):", X_train_tree.shape)
+    print("    Kształt po przetworzeniu (drzewo):", X_train_tree.shape)
 
     print("\n Fitowanie pipeline’u dla logitu (WoE) na zbiorze treningowym...")
     X_train_logit = logit_pipeline.fit_transform(X_train, y_train)
-    print("   ➜ Kształt po przetworzeniu (logit+WoE):", X_train_logit.shape)
+    print("    Kształt po przetworzeniu (logit+WoE):", X_train_logit.shape)
     
     print("\n Fitowanie pipeline'u dla modeli nieinterpretowalnych na zbiorze treningowym...")
     X_train_blackbox = blackbox_pipeline.fit_transform(X_train, y_train)
-    print("   ➜ Kształt po przetworzeniu (blackbox):", X_train_blackbox.shape)
+    print("    Kształt po przetworzeniu (blackbox):", X_train_blackbox.shape)
 
 
     # 5. Zapisujemy pipeline’y do plików

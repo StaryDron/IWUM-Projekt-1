@@ -28,7 +28,7 @@ import matplotlib.pyplot as plt
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, ".."))
 
-# ✅ DODAJ TE LINIE - dodaj folder EDA do sys.path
+#  DODAJ TE LINIE - dodaj folder EDA do sys.path
 EDA_DIR = os.path.join(PROJECT_ROOT, "EDA")
 if EDA_DIR not in sys.path:
     sys.path.append(EDA_DIR)

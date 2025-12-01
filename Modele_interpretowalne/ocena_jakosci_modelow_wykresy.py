@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import joblib
 import matplotlib.pyplot as plt
+import sys
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import (
@@ -11,12 +12,17 @@ from sklearn.metrics import (
     precision_recall_curve,
     average_precision_score,
     brier_score_loss,
+    confusion_matrix,
+    recall_score,
 )
 from sklearn.calibration import calibration_curve
 
 # ───────────── KONFIGURACJA ŚCIEŻEK ─────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))        # .../IWUM-Projekt-1/Modele_interpretowalne
 PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, "..")) # .../IWUM-Projekt-1
+
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
 
 DATA_PATH = os.path.join(PROJECT_ROOT, "zbiór_7.csv")
 PREPROC_DIR = os.path.join(PROJECT_ROOT, "EDA", "preprocesing_pipelines")
@@ -41,6 +47,22 @@ def calculate_ks_statistic(y_true, y_pred_proba):
     from scipy.stats import ks_2samp
     ks_stat, _ = ks_2samp(pos, neg)
     return ks_stat
+
+
+def print_recall_specificity(y_true, y_prob, threshold, model_name, dataset_name):
+    """
+    Liczy i wypisuje recall (TPR) oraz specificity (TNR) dla zadanego progu.
+    """
+    y_pred = (y_prob >= threshold).astype(int)
+
+    rec = recall_score(y_true, y_pred)
+
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+    spec = tn / (tn + fp) if (tn + fp) > 0 else np.nan
+
+    print(f"\n=== {model_name} – {dataset_name} (threshold={threshold:.2f}) ===")
+    print(f"Recall (TPR):      {rec:.4f}")
+    print(f"Specificity (TNR): {spec:.4f}")
 
 
 # =====================================================================
@@ -213,9 +235,23 @@ def main():
     ]
 
     # =====================================================================
+    #        RECALL I SPECIFICITY DLA WYBRANEGO PROGU (np. 0.2)
+    # =====================================================================
+    threshold = 0.20
+    print("\n>>> Metryki dla progu decyzyjnego PD =", threshold)
+
+    # Logit – val i test
+    print_recall_specificity(y_val,  p_val_logit, threshold, "Logit", "VAL")
+    print_recall_specificity(y_test, p_test_logit, threshold, "Logit", "TEST")
+
+    # Tree – val i test
+    print_recall_specificity(y_val,  p_val_tree, threshold, "Tree", "VAL")
+    print_recall_specificity(y_test, p_test_tree, threshold, "Tree", "TEST")
+
+    # =====================================================================
     #                          WYKRESY
     # =====================================================================
-    print(" Rysuję ROC...")
+    print("\n Rysuję ROC...")
     plot_roc(MODELE)
 
     print(" Rysuję PR...")
