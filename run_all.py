@@ -9,7 +9,7 @@ def run_script(path):
     print(f"\n=== Uruchamianie: {path} ===")
     if not os.path.exists(path):
         print(f"❌ Błąd: plik nie istnieje → {path}")
-        sys.exit(1)
+        sys.exit(1) 
 
     result = subprocess.run([sys.executable, path])
     if result.returncode != 0:

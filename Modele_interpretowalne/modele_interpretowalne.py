@@ -2,11 +2,15 @@ import os
 import pandas as pd
 import numpy as np
 import joblib
+import sys
 # reszta importów sklearn, warnings, itd.
 
 # ───────────── KONFIGURACJA ŚCIEŻEK ─────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))        # .../IWUM-Projekt-1/Modele_interpretowalne
 PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, "..")) # .../IWUM-Projekt-1
+
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
 
 DATA_PATH = os.path.join(PROJECT_ROOT, "zbiór_7.csv")
 PREPROC_DIR = os.path.join(PROJECT_ROOT, "EDA", "preprocesing_pipelines")
@@ -274,10 +278,10 @@ def main():
     betas = best_logit.coef_[0]
     intercept = best_logit.intercept_[0]
     
-    print(f"Intercept (β0): {intercept:.6f}\n")
+    print(f"Intercept (Beta0): {intercept:.6f}\n")
     
     for fname, beta in zip(feature_names, betas):
-        print(f"{fname:40s}  β = {beta:.6f}")
+        print(f"{fname:40s}  beta = {beta:.6f}")
 
     print("Zapisano wszystkie modele i wyniki.")
 

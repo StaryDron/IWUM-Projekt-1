@@ -95,7 +95,7 @@ def generate_per_case_plots(df_meta, df_contrib):
         save_path = os.path.join(PLOTS_CASE_DIR, fname)
 
         plot_single_case_bar(df_case, meta_row, save_path)
-        print(f"💾 Zapisano wykres dla case {case_id} → {save_path}")
+        print(f" Zapisano wykres dla case {case_id}  {save_path}")
 
 
 # ============================================================
@@ -166,7 +166,7 @@ def plot_grid_cases(df_meta, df_contrib, n_per_case=9):
     out_path = os.path.join(PLOTS_GRID_DIR, "grid_3x3_cases_top10_contributions.png")
     plt.savefig(out_path, dpi=150)
     plt.close()
-    print(f"💾 Zapisano zbiorczy wykres 3x3 → {out_path}")
+    print(f" Zapisano zbiorczy wykres 3x3  {out_path}")
 
 
 # ============================================================
@@ -174,16 +174,16 @@ def plot_grid_cases(df_meta, df_contrib, n_per_case=9):
 # ============================================================
 
 def main():
-    print("📂 Wczytywanie danych lokalnej interpretacji...")
+    print(" Wczytywanie danych lokalnej interpretacji...")
     df_meta, df_contrib = load_local_data()
 
-    print("🖼️ Rysuję wykresy pojedynczych case'ów...")
+    print(" Rysuję wykresy pojedynczych case'ów...")
     generate_per_case_plots(df_meta, df_contrib)
 
-    print("🖼️ Rysuję zbiorczy wykres 3x3 z gradientem po PD...")
+    print(" Rysuję zbiorczy wykres 3x3 z gradientem po PD...")
     plot_grid_cases(df_meta, df_contrib, n_per_case=9)
 
-    print("✅ Gotowe – lokalna interpretacja zwizualizowana.")
+    print(" Gotowe – lokalna interpretacja zwizualizowana.")
 
 
 if __name__ == "__main__":
