@@ -40,12 +40,13 @@ SCRIPTS = [
     os.path.join(EDA_DIR, "dopasowanie_pipeline.py"),
 
     # --- Modele interpretowalne ---
-    os.path.join(INTERPRET_DIR, "model_interpretowalny.py"),
+    os.path.join(INTERPRET_DIR, "modele_interpretowalne.py"),
     os.path.join(INTERPRET_DIR, "ocena_jakosci_modelow_wykresy.py"),
     os.path.join(INTERPRET_DIR, "interpretowalnosc_regresja_logistyczna.py"),
+    os.path.join(INTERPRET_DIR, 'interpretowalnosc_logit','interpretowalnosc_lokalna','wykresy_interpretacji_lokalnej.py'),
 
     # --- Modele nieinterpretowalne ---
-    os.path.join(BLACKBOX_DIR, "model_nieinterpretowalny.py"),
+    os.path.join(BLACKBOX_DIR, "modele_nieinterpretowalne.py"),
 
     # --- Kalibracja ---
     os.path.join(KALIBR_DIR, "kalibracja.py"),
@@ -62,10 +63,30 @@ if __name__ == "__main__":
     print("\n==============================================")
     print("   URUCHAMIANIE PEŁNEGO PIPELINE PROJEKTU")
     print("==============================================")
+        
+    python_exe = sys.executable
 
     for script in SCRIPTS:
-        run_script(script)
+        print(f"\n=== Uruchamianie: {script} ===")
+        result = subprocess.run(
+            [python_exe, script],
+            text=True,
+            capture_output=True
+        )
+
+            # wypisz stdout
+        if result.stdout:
+            print(result.stdout)
+    
+        if result.returncode == 0:
+            print(f"✅ Zakończono: {script}")
+        else:
+            print(f"❌ Błąd podczas wykonywania {script}")
+            print(f"   Kod wyjścia: {result.returncode}")
+            if result.stderr:
+                print("   STDERR:")
+                print(result.stderr)
 
     print("\n==============================================")
-    print("   🎉 ZAKOŃCZONO cały pipeline bez błędów! 🎉")
+    print("   🎉 ZAKOŃCZONO cały pipeline 🎉")
     print("==============================================")

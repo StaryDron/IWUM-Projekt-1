@@ -102,18 +102,18 @@ def summarize_signs(df_coef, intercept):
     print(f"  • beta = 0  (zero):     {n_zero}")
 
     if n_pos == 0 and n_neg > 0:
-        print("\n✅ Wszystkie niezerowe bety są ujemne – kierunek wpływu jest spójny z WoE.")
+        print("\n Wszystkie niezerowe bety są ujemne – kierunek wpływu jest spójny z WoE.")
     elif n_neg == 0 and n_pos > 0:
-        print("\n⚠️ Wszystkie niezerowe bety są dodatnie – to oznacza odwrotną konwencję WoE.")
+        print("\n Wszystkie niezerowe bety są dodatnie – to oznacza odwrotną konwencję WoE.")
     else:
-        print("\n⚠️ Mamy mieszane znaki beta – warto sprawdzić, które cechy mają 'dziwny' kierunek.")
+        print("\n Mamy mieszane znaki beta – warto sprawdzić, które cechy mają 'dziwny' kierunek.")
         print("   (np. problem z binningiem, korelacjami lub zmiennymi pomocniczymi).")
 
 
 def save_coefficients(df_coef):
     out_path = os.path.join(INTERP_DIR, "coefficients_logit.csv")
     df_coef.to_csv(out_path, index=False)
-    print(f"\n💾 Zapisano tabelę współczynników do: {out_path}")
+    print(f"\n Zapisano tabelę współczynników do: {out_path}")
 
 
 # ============================================================
@@ -195,14 +195,14 @@ def generate_woe_profiles(df_coef, X_woe, y):
         save_path = os.path.join(
             INTERP_DIR,"woe_profils", f"woe_profile_positive_beta_{pos_feat}.png"
         )
-        print(f"\n📈 Profil WoE dla cechy z dodatnią betą: {pos_feat}")
+        print(f"\n Profil WoE dla cechy z dodatnią betą: {pos_feat}")
         plot_woe_profile(X_woe, y, pos_feat, save_path)
     else:
-        print("\nℹ️ Brak cech z dodatnią betą – nie rysuję osobnego profilu dla beta > 0.")
+        print("\n Brak cech z dodatnią betą – nie rysuję osobnego profilu dla beta > 0.")
 
     # top-5 cech z ujemną betą wg |beta|
     df_neg = df_coef[df_coef["sign"] == "negative"].head(9)
-    print("\n📈 Profile WoE dla 9 cech z największym |beta| (beta < 0):")
+    print("\n Profile WoE dla 9 cech z największym |beta| (beta < 0):")
     for feat in df_neg["feature"]:
         save_path = os.path.join(INTERP_DIR,"woe_profils", f"woe_profile_top_negative_{feat}.png")
         plot_woe_profile(X_woe, y, feat, save_path)
@@ -298,7 +298,7 @@ def diagnose_bin_sizes(df_coef, n_top=5, min_count=50):
     zapisuje tabelki liczności do CSV.
     """
 
-    print("\n🔍 Diagnostyka liczności binów WoE...")
+    print("\n Diagnostyka liczności binów WoE...")
 
     # 1. Pobieramy train i WoETransformera
     X_train, y_train = get_train_split()
@@ -316,14 +316,14 @@ def diagnose_bin_sizes(df_coef, n_top=5, min_count=50):
         try:
             tbl = compute_bin_table_for_feature(feat, X_train, y_train, woe_tr, min_count=min_count)
         except KeyError as e:
-            print(f"⚠️ [WARN] Pomijam {feat}: {e}")
+            print(f" [WARN] Pomijam {feat}: {e}")
             continue
 
         tbl["feature"] = feat
         all_tables.append(tbl)
 
         # Krótkie podsumowanie w konsoli
-        print(f"\n📊 Cechy binów – {feat}:")
+        print(f"\n Cechy binów – {feat}:")
         print(tbl[["bin", "total", "good", "bad", "default_rate", "low_count_flag"]].to_string(index=False))
 
         # Zapis osobnego pliku CSV dla tej cechy
@@ -337,9 +337,9 @@ def diagnose_bin_sizes(df_coef, n_top=5, min_count=50):
         full = pd.concat(all_tables, ignore_index=True)
         out_path_all = os.path.join(INTERP_DIR, "woe_bin_counts_all_checked_features.csv")
         full.to_csv(out_path_all, index=False)
-        print(f"\n💾 Zapisano zbiorczą tabelę liczności binów do: {out_path_all}")
+        print(f"\n Zapisano zbiorczą tabelę liczności binów do: {out_path_all}")
     else:
-        print("\n⚠️ Nie udało się zbudować żadnej tabeli binów – sprawdź nazwy cech i WoE.")
+        print("\n Nie udało się zbudować żadnej tabeli binów – sprawdź nazwy cech i WoE.")
 
 
 
@@ -362,7 +362,7 @@ def plot_beta_importance(df_coef, top_n=9):
     out_path = os.path.join(WYKRESY_DIR, f"beta_importance_top{top_n}.png")
     plt.savefig(out_path, dpi=150)
     plt.close()
-    print(f"\n📊 Zapisano wykres ważności cech: {out_path}")
+    print(f"\n Zapisano wykres ważności cech: {out_path}")
 
 
 def plot_contribution_for_top_case(df_coef, intercept, X_woe, y, logit):
@@ -397,7 +397,7 @@ def plot_contribution_for_top_case(df_coef, intercept, X_woe, y, logit):
     out_path = os.path.join(WYKRESY_DIR, "contribution_top_case.png")
     plt.savefig(out_path, dpi=150)
     plt.close()
-    print(f"📊 Zapisano contribution plot: {out_path}")
+    print(f" Zapisano contribution plot: {out_path}")
 
 
 # ============================================================
@@ -481,7 +481,7 @@ def plot_ice(grid, ice_curves, feature):
 def generate_pdp_ice_for_top_features(df_coef, X_woe, y, logit, top_n=9):
     """PDP + ICE dla top_n cech wg |beta| (niezależnie od znaku)."""
     df_top = df_coef.head(top_n)
-    print(f"\n📈 PDP i ICE dla top {top_n} cech wg |beta|:")
+    print(f"\n PDP i ICE dla top {top_n} cech wg |beta|:")
 
     for feat in df_top["feature"]:
         print(f"   • {feat}")
@@ -620,7 +620,7 @@ def compute_local_decomposition_for_9_cases(logit, df_coef):
           * local_cases_meta.csv – 9 wierszy (case_id, index, y_true, logit, pd)
           * local_cases_top10_contributions.csv – top 9 cech dla każdego case'a
     """
-    print("\n🧩 Liczę lokalną interpretację (9 przypadków)...")
+    print("\n Liczę lokalną interpretację (9 przypadków)...")
 
     preproc_logit = load_logit_preproc()
     X_train, X_val, X_test, y_train, y_val, y_test = get_data_splits_for_local()
@@ -675,13 +675,13 @@ def compute_local_decomposition_for_9_cases(logit, df_coef):
     ]
     meta_path = os.path.join(INTERP_LOCAL_DIR, "local_cases_meta.csv")
     df_meta.to_csv(meta_path, index=False)
-    print(f"💾 Zapisano podsumowanie 9 przypadków → {meta_path}")
+    print(f" Zapisano podsumowanie 9 przypadków → {meta_path}")
 
     # zapis top10 contributions (long format)
     df_all_top10 = pd.concat(all_top10_rows, ignore_index=True)
     contrib_path = os.path.join(INTERP_LOCAL_DIR, "local_cases_top10_contributions.csv")
     df_all_top10.to_csv(contrib_path, index=False)
-    print(f"💾 Zapisano top 9 wkładów cech dla 9 przypadków → {contrib_path}")
+    print(f" Zapisano top 9 wkładów cech dla 9 przypadków → {contrib_path}")
 
 
 # ============================================================
@@ -690,11 +690,11 @@ def compute_local_decomposition_for_9_cases(logit, df_coef):
 
 def main():
     
-    print("📂 Ładowanie modelu logit (WoE)...")
+    print(" Ładowanie modelu logit (WoE)...")
     logit = load_logit_model()
     preproc_logit = load_logit_preprocessor()
 
-    print("📊 Ekstrakcja współczynników...")
+    print(" Ekstrakcja współczynników...")
     df_coef, intercept = extract_coefficients(logit)
 
     summarize_signs(df_coef, intercept)
@@ -703,7 +703,7 @@ def main():
     print("\nTop 9 cech wg |beta|:")
     print(df_coef.head(9).to_string(index=False))
 
-    print("\n📂 Przygotowywanie danych (WoE)...")
+    print("\n Przygotowywanie danych (WoE)...")
     X_woe, y = load_and_prepare_data(preproc_logit, logit)
 
     # ---------- Profile WoE ----------
@@ -718,7 +718,7 @@ def main():
     # ---------- PDP + ICE ----------
     generate_pdp_ice_for_top_features(df_coef, X_woe, y, logit, top_n=9)
 
-    print("\n✅ Zakończono generowanie wykresów interpretowalności logitu.")
+    print("\n Zakończono generowanie wykresów interpretowalności logitu.")
     
     diagnose_bin_sizes(df_coef, n_top=9, min_count=50)
     

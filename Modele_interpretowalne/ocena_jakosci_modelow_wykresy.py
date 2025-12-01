@@ -171,7 +171,7 @@ def plot_hist(models, out_dir=None):
 # =====================================================================
 
 def main():
-    print("📂 Wczytywanie danych i modeli...")
+    print(" Wczytywanie danych i modeli...")
     df = pd.read_csv(DATA_PATH)
     X = df.drop(columns=["default"])
     y = df["default"]
@@ -215,19 +215,19 @@ def main():
     # =====================================================================
     #                          WYKRESY
     # =====================================================================
-    print("🖼️ Rysuję ROC...")
+    print(" Rysuję ROC...")
     plot_roc(MODELE)
 
-    print("🖼️ Rysuję PR...")
+    print(" Rysuję PR...")
     plot_pr(MODELE)
 
-    print("🖼️ Rysuję calibration...")
+    print(" Rysuję calibration...")
     plot_calibration(MODELE)
 
-    print("🖼️ Rysuję histogramy PD...")
+    print(" Rysuję histogramy PD...")
     plot_hist(MODELE)
 
-    print("✅ Wygenerowano wykresy dla logitu i drzewca!")
+    print(" Wygenerowano wykresy dla logitu i drzewca!")
     print(f"   Pliki zapisane w: {PLOTS_DIR}")
 
 
